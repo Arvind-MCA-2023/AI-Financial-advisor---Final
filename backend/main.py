@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
-from routes import auth, transactions, analytics, ai
+from routes import auth, transactions, analytics, ai, budgets, goals, users
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,6 +29,9 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(transactions.router, prefix="/transactions", tags=["Transactions"])
 app.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 app.include_router(ai.router, prefix="/ai", tags=["AI Services"])
+app.include_router(budgets.router, prefix="/budget", tags=["Budgets"]) 
+app.include_router(goals.router, prefix="/goal",tags=["Goals"])
+app.include_router(users.router, prefix="/user",tags=["Users"])
 
 
 @app.get("/")

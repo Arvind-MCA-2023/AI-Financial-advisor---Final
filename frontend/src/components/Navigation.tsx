@@ -9,7 +9,8 @@ import {
   MessageSquare, 
   FileText,
   User,
-  Settings
+  Settings,
+  Target
 } from "lucide-react";
 
 interface NavigationProps {
@@ -20,13 +21,16 @@ interface NavigationProps {
 
 const Navigation = ({ activeModule, setActiveModule, onLogout }: NavigationProps) => {
   const modules = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "expenses", label: "Expense Tracking", icon: Receipt },
-    { id: "analytics", label: "Analytics", icon: PieChart },
-    { id: "forecasting", label: "AI Forecasting", icon: TrendingUp },
-    { id: "advisor", label: "AI Advisor", icon: MessageSquare },
-    { id: "reports", label: "Reports", icon: FileText },
-  ];
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "expenses", label: "Expense Tracking", icon: Receipt },
+  { id: "analytics", label: "Analytics", icon: PieChart },
+  { id: "budgets", label: "Budgets", icon: Target },        // NEW
+  { id: "goals", label: "Goals", icon: TrendingUp },        // NEW
+  { id: "forecasting", label: "AI Forecasting", icon: TrendingUp },
+  { id: "advisor", label: "AI Advisor", icon: MessageSquare },
+  { id: "reports", label: "Reports", icon: FileText },
+  { id: "profile", label: "Profile", icon: User },          // NEW
+];
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-background/50 backdrop-blur-sm">

@@ -7,6 +7,9 @@ import Analytics from "@/components/Analytics";
 import AIForecasting from "@/components/AIForecasting";
 import AIAdvisor from "@/components/AIAdvisor";
 import Reports from "@/components/Reports";
+import BudgetManagement from "@/components/BudgetManagement";
+import GoalsManagement from "@/components/GoalsManagement";
+import UserProfile from "@/components/UserProfile";
 import { apiService } from "@/services/api";
 
 const Index = () => {
@@ -54,23 +57,29 @@ const Index = () => {
 
 
   const renderActiveModule = () => {
-    switch (activeModule) {
-      case "dashboard":
-        return <Dashboard />;
-      case "expenses":
-        return <ExpenseTracking />;
-      case "analytics":
-        return <Analytics />;
-      case "forecasting":
-        return <AIForecasting />;
-      case "advisor":
-        return <AIAdvisor />;
-      case "reports":
-        return <Reports />;
-      default:
-        return <Dashboard />;
-    }
-  };
+  switch (activeModule) {
+    case "dashboard":
+      return <Dashboard />;
+    case "expenses":
+      return <ExpenseTracking />;
+    case "analytics":
+      return <Analytics />;
+    case "budgets":
+      return <BudgetManagement />;     // NEW
+    case "goals":
+      return <GoalsManagement />;      // NEW
+    case "forecasting":
+      return <AIForecasting />;
+    case "advisor":
+      return <AIAdvisor />;
+    case "reports":
+      return <Reports />;
+    case "profile":
+      return <UserProfile />;          // NEW
+    default:
+      return <Dashboard />;
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-bg">

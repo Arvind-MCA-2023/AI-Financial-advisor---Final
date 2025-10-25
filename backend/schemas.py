@@ -33,9 +33,11 @@ class TransactionCreate(TransactionBase):
     date: Optional[datetime] = None
 
 class TransactionUpdate(BaseModel):
-    description: Optional[str] = None
-    amount: Optional[float] = None
-    category: Optional[str] = None
+    description: str | None
+    amount: float | None
+    category: str | None
+    transaction_type: str | None
+    date: datetime | None
 
 class TransactionResponse(TransactionBase):
     id: int
