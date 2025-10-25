@@ -1,24 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
+from database import get_db
+from models import User, Transaction
+from schemas import ChatMessage, ChatResponse, InsightResponse
+from auth import get_current_user
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 import os
-from sqlalchemy.orm import Session
-from auth import get_current_user
-from schemas import ChatMessage, ChatResponse, InsightResponse
-from models import Transaction, User
-from database import get_db
 
-# Initialize router
-router = APIRouter(prefix="/ai", tags=["AI Advisor"])
+router = APIRouter()
 
 # Initialize Groq LLM
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
     model="llama-3.1-8b-instant",
-    temperature=0.7,  # More creative for advice
+    temperature=0.7,
 )
 
 # Financial Advisor System Prompt
@@ -62,35 +61,55 @@ prompt = ChatPromptTemplate.from_messages([
 chain = prompt | llm | StrOutputParser()
 
 
-def get_user_financial_context(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> str:
-    """
-    Fetch user's financial data to provide context to AI
-    Replace with your actual database queries
-    """
-    transactions = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
+def get_user_financial_context(user_id: int, db: Session) -> str:
+    """Fetch user's financial data to provide context to AI"""
+    transactions = db.query(Transaction).filter(Transaction.user_id == user_id).all()
     
-    return transactions
+    if not transactions:
+        return "No transaction history available yet."
+    
+    total_income = sum(t.amount for t in transactions if t.transaction_type == "income")
+    total_expenses = sum(abs(t.amount) for t in transactions if t.transaction_type == "expense")
+    
+    # Category breakdown
+    categories = {}
+    for t in transactions:
+        if t.transaction_type == "expense":
+            categories[t.category] = categories.get(t.category, 0) + abs(t.amount)
+    
+    context = f"""
+User Financial Summary:
+- Total Income: ₹{total_income:,.2f}
+- Total Expenses: ₹{total_expenses:,.2f}
+- Net Savings: ₹{total_income - total_expenses:,.2f}
+- Savings Rate: {((total_income - total_expenses) / total_income * 100) if total_income > 0 else 0:.1f}%
+
+Expense Breakdown by Category:
+"""
+    for category, amount in sorted(categories.items(), key=lambda x: x[1], reverse=True):
+        context += f"\n- {category}: ₹{amount:,.2f}"
+    
+    return context
 
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_advisor(
     chat_message: ChatMessage,
-    current_user: User = Depends(get_current_user)  # Your auth dependency
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """
-    Chat with AI Financial Advisor
-    """
+    """Chat with AI Financial Advisor"""
     try:
         # Convert conversation history to LangChain message format
         history = []
-        for msg in chat_message.conversation_history[-10:]:  # Last 10 messages for context
+        for msg in chat_message.conversation_history[-10:]:  # Last 10 messages
             if msg.get("type") == "user":
                 history.append(HumanMessage(content=msg.get("content", "")))
             elif msg.get("type") == "bot":
                 history.append(AIMessage(content=msg.get("content", "")))
         
         # Get user's financial context
-        user_context = get_user_financial_context(current_user.id, db=None)
+        user_context = get_user_financial_context(current_user.id, db)
         
         # Generate response
         response = await chain.ainvoke({
@@ -110,16 +129,13 @@ async def chat_with_advisor(
 
 @router.get("/insights", response_model=InsightResponse)
 async def get_ai_insights(
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """
-    Generate personalized financial insights using AI
-    """
+    """Generate personalized financial insights using AI"""
     try:
-        # Get user's financial data
-        user_context = get_user_financial_context(current_user["id"], db=None)
+        user_context = get_user_financial_context(current_user.id, db)
         
-        # Create insights prompt
         insights_prompt = f"""Based on this user's financial profile:
 
 {user_context}
@@ -141,7 +157,6 @@ Return ONLY the JSON array, no additional text."""
 
         response = await llm.ainvoke(insights_prompt)
         
-        # Parse the JSON response
         import json
         insights = json.loads(response.content)
         
@@ -152,136 +167,71 @@ Return ONLY the JSON array, no additional text."""
         return InsightResponse(insights=[
             {
                 "type": "positive",
-                "title": "Excellent Savings Rate",
-                "message": "You're saving 34.7% of your income, which is above the recommended 20%.",
-                "confidence": "95%"
+                "title": "Good Savings Habit",
+                "message": "You're maintaining a positive savings rate this month.",
+                "confidence": "90%"
             },
             {
                 "type": "opportunity",
                 "title": "Investment Opportunity",
-                "message": "Your emergency fund is solid. Consider investing ₹50,000 in index funds for long-term growth.",
-                "confidence": "88%"
+                "message": "Consider investing your savings for better returns.",
+                "confidence": "85%"
             },
             {
                 "type": "warning",
-                "title": "Entertainment Overspending",
-                "message": "Entertainment costs increased 30% this month (₹9,500). Consider setting a ₹7,000 monthly limit.",
-                "confidence": "91%"
+                "title": "Track Your Expenses",
+                "message": "Some expense categories need closer monitoring.",
+                "confidence": "88%"
             }
         ])
 
 
-@router.post("/categorize")
-async def categorize_transaction(
-    description: str,
-    amount: float,
-    current_user: dict = Depends(get_current_user)
-):
-    """
-    Categorize a transaction using AI
-    """
-    try:
-        categories = [
-            "Food & Dining", "Transportation", "Shopping", 
-            "Bills & Utilities", "Healthcare", "Education",
-            "Entertainment", "Personal Care", "Groceries",
-            "Travel", "Income", "Other"
-        ]
-        
-        prompt_text = f"""Categorize this transaction:
-Description: {description}
-Amount: ₹{amount}
-
-Available categories: {', '.join(categories)}
-
-Rules:
-- Return ONLY the category name, nothing else
-- Consider Indian context (vendors, services)
-- Use the most appropriate category
-
-Category:"""
-
-        response = await llm.ainvoke(prompt_text)
-        category = response.content.strip()
-        
-        # Validate category
-        if category not in categories:
-            category = "Other"
-        
-        return {
-            "category": category,
-            "confidence": 0.92,
-            "ai_categorized": True
-        }
-        
-    except Exception:
-        return {
-            "category": "Other",
-            "confidence": 0.0,
-            "ai_categorized": False
-        }
-
-
-@router.get("/forecast")
+@router.post("/forecast")
 async def forecast_expenses(
     months: int = 3,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """
-    Forecast future expenses using AI analysis
-    """
+    """Forecast future expenses using AI analysis"""
     try:
-        user_context = get_user_financial_context(current_user["id"], db=None)
+        transactions = db.query(Transaction).filter(
+            Transaction.user_id == current_user.id
+        ).all()
         
-        forecast_prompt = f"""Based on this financial profile:
-
-{user_context}
-
-Forecast monthly expenses for the next {months} months.
-
-Consider:
-- Current spending patterns
-- Seasonal variations (festivals, holidays)
-- Inflation (6% annual)
-- Observed trends
-
-Return JSON with format:
-{{"months": [{{"month": "November 2024", "projected_expense": 65000, "confidence": "87%"}}]}}
-
-Return ONLY valid JSON."""
-
-        response = await llm.ainvoke(forecast_prompt)
+        # Calculate average monthly expenses
+        total_expenses = sum(
+            abs(t.amount) for t in transactions if t.transaction_type == "expense"
+        )
+        num_months = len(set(t.date.strftime("%Y-%m") for t in transactions)) or 1
+        avg_monthly_expenses = total_expenses / num_months
         
-        import json
-        forecast = json.loads(response.content)
-        
-        return forecast
-        
-    except Exception:
-        # Fallback forecast
-        base_expense = 62000
-        forecasts = []
-        for i in range(months):
-            month_date = datetime.now() + timedelta(days=30 * (i + 1))
-            forecasts.append({
+        # Simple forecast with growth rate
+        forecast = []
+        for i in range(1, months + 1):
+            month_date = datetime.now() + timedelta(days=30 * i)
+            predicted = avg_monthly_expenses * (1 + (i * 0.02))  # 2% growth per month
+            
+            forecast.append({
                 "month": month_date.strftime("%B %Y"),
-                "projected_expense": int(base_expense * (1 + (i * 0.02))),
-                "confidence": "85%"
+                "predicted_expenses": int(predicted),
+                "confidence": max(95 - (i * 3), 70)  # Decreasing confidence
             })
         
-        return {"months": forecasts}
+        return {"forecast": forecast}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forecast failed: {str(e)}")
 
 
 @router.get("/tips")
 async def get_financial_tips(
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """
-    Get personalized financial tips
-    """
+    """Get personalized financial tips"""
+    user_context = get_user_financial_context(current_user.id, db)
+    
     try:
-        user_context = get_user_financial_context(current_user["id"], db=None)
-        
         tips_prompt = f"""Based on this financial profile:
 
 {user_context}
@@ -310,11 +260,17 @@ Return as JSON array:
                 "description": "Set up automatic transfers to save 20% of income without thinking about it.",
                 "impact": "High",
                 "difficulty": "Easy"
+            },
+            {
+                "title": "Track Daily Expenses",
+                "description": "Monitor spending daily to identify unnecessary purchases and save more.",
+                "impact": "Medium",
+                "difficulty": "Easy"
+            },
+            {
+                "title": "Create Emergency Fund",
+                "description": "Build 6 months of expenses as emergency fund for financial security.",
+                "impact": "High",
+                "difficulty": "Medium"
             }
         ]}
-
-
-# Mock auth dependency - replace with your actual auth
-async def get_current_user():
-    """Replace with your actual authentication logic"""
-    return {"id": 1, "email": "user@example.com"}
