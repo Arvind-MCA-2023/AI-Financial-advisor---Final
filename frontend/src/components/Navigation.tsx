@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -10,7 +9,8 @@ import {
   FileText,
   User,
   Settings,
-  Target
+  Target,
+  Wallet
 } from "lucide-react";
 
 interface NavigationProps {
@@ -21,16 +21,15 @@ interface NavigationProps {
 
 const Navigation = ({ activeModule, setActiveModule, onLogout }: NavigationProps) => {
   const modules = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "expenses", label: "Expense Tracking", icon: Receipt },
-  { id: "analytics", label: "Analytics", icon: PieChart },
-  { id: "budgets", label: "Budgets", icon: Target },        // NEW
-  { id: "goals", label: "Goals", icon: TrendingUp },        // NEW
-  { id: "forecasting", label: "AI Forecasting", icon: TrendingUp },
-  { id: "advisor", label: "AI Advisor", icon: MessageSquare },
-  { id: "reports", label: "Reports", icon: FileText },
-  { id: "profile", label: "Profile", icon: User },          // NEW
-];
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "expenses", label: "Expense Tracking", icon: Receipt },
+    { id: "budgets", label: "Budgets", icon: Wallet },
+    { id: "goals", label: "Goals", icon: Target },
+    { id: "analytics", label: "Analytics", icon: PieChart },
+    { id: "forecasting", label: "AI Forecasting", icon: TrendingUp },
+    { id: "advisor", label: "AI Advisor", icon: MessageSquare },
+    { id: "reports", label: "Reports", icon: FileText },
+  ];
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 border-b border-border bg-background/50 backdrop-blur-sm">
@@ -40,7 +39,7 @@ const Navigation = ({ activeModule, setActiveModule, onLogout }: NavigationProps
             <TrendingUp className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">AI-Financial Advicer</h1>
+            <h1 className="text-xl font-bold">AI-Financial Adviser</h1>
             <Badge className="badge-orange text-xs">AI-Powered</Badge>
           </div>
         </div>
@@ -65,7 +64,11 @@ const Navigation = ({ activeModule, setActiveModule, onLogout }: NavigationProps
       </div>
       
       <div className="flex items-center space-x-3">
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setActiveModule("profile")}
+        >
           <User className="w-4 h-4 mr-2" />
           Profile
         </Button>

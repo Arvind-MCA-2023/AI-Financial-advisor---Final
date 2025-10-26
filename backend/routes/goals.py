@@ -101,7 +101,7 @@ def get_goals(
     query = db.query(Goal).filter(Goal.user_id == current_user.id)
     
     if not include_completed:
-        query = query.filter(Goal.is_completed == False)
+        query = query.filter(Goal.is_completed)
     
     goals = query.order_by(Goal.target_date).all()
     
@@ -249,7 +249,7 @@ def _format_goal_response(goal: Goal) -> dict:
     progress_percentage = (goal.current_amount / goal.target_amount * 100) if goal.target_amount > 0 else 0
     
     # Calculate days remaining
-    days_remaining = (goal.target_date - date.today()).days
+    days_remaining = (goal.target_date.date() - date.today()).days
     
     # Calculate monthly savings needed
     months_remaining = max(1, days_remaining / 30)
@@ -260,7 +260,7 @@ def _format_goal_response(goal: Goal) -> dict:
         status = "completed"
     elif days_remaining < 0:
         status = "overdue"
-    elif progress_percentage >= (100 - (days_remaining / ((goal.target_date - date.today()).days + 1) * 100)):
+    elif progress_percentage >= (100 - (days_remaining / ((goal.target_date.date() - date.today()).days + 1) * 100)):
         status = "on_track"
     else:
         status = "behind"

@@ -23,10 +23,12 @@ const Index = () => {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
+          // Optionally verify token with backend
           // await apiService.getCurrentUser();
           setIsAuthenticated(true);
         } catch (error) {
           localStorage.removeItem('authToken');
+          localStorage.removeItem('userName');
           setIsAuthenticated(false);
           navigate('/signin');
         }
@@ -39,47 +41,55 @@ const Index = () => {
     checkAuth();
   }, [navigate]);
 
-
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    setIsAuthenticated(false);
-    setActiveModule("dashboard");
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userName');
+      setIsAuthenticated(false);
+      setActiveModule("dashboard");
+      navigate('/');
+    }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-bg flex items-center justify-center">
-        <div className="animate-pulse text-xl font-semibold">Loading...</div>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <div className="text-xl font-semibold">Loading...</div>
+        </div>
       </div>
     );
   }
 
-
   const renderActiveModule = () => {
-  switch (activeModule) {
-    case "dashboard":
-      return <Dashboard />;
-    case "expenses":
-      return <ExpenseTracking />;
-    case "analytics":
-      return <Analytics />;
-    case "budgets":
-      return <BudgetManagement />;     // NEW
-    case "goals":
-      return <GoalsManagement />;      // NEW
-    case "forecasting":
-      return <AIForecasting />;
-    case "advisor":
-      return <AIAdvisor />;
-    case "reports":
-      return <Reports />;
-    case "profile":
-      return <UserProfile />;          // NEW
-    default:
-      return <Dashboard />;
-  }
-};
+    switch (activeModule) {
+      case "dashboard":
+        return <Dashboard />;
+      case "expenses":
+        return <ExpenseTracking />;
+      case "budgets":
+        return <BudgetManagement />;
+      case "goals":
+        return <GoalsManagement />;
+      case "analytics":
+        return <Analytics />;
+      case "forecasting":
+        return <AIForecasting />;
+      case "advisor":
+        return <AIAdvisor />;
+      case "reports":
+        return <Reports />;
+      case "profile":
+        return <UserProfile />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-bg">

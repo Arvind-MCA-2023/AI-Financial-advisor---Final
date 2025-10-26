@@ -202,137 +202,137 @@ class ApiService {
     return this.request('/analytics/monthly');
   }
 
-  // ==================== AI SERVICES ROUTES ====================
+  // // ==================== AI SERVICES ROUTES ====================
   
-  async chatWithAdvisor(message: string, conversationHistory: any[] = []): Promise<{ 
-    response: string; 
-    timestamp: string;
-  }> {
-    return this.request('/ai/chat', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        message,
-        conversation_history: conversationHistory 
-      }),
-    });
-  }
+  // async chatWithAdvisor(message: string, conversationHistory: any[] = []): Promise<{ 
+  //   response: string; 
+  //   timestamp: string;
+  // }> {
+  //   return this.request('/ai/chat', {
+  //     method: 'POST',
+  //     body: JSON.stringify({ 
+  //       message,
+  //       conversation_history: conversationHistory 
+  //     }),
+  //   });
+  // }
 
-  async getAIInsights(): Promise<{ insights: any[] }> {
-    return this.request<{ insights: any[] }>('/ai/insights');
-  }
+  // async getAIInsights(): Promise<{ insights: any[] }> {
+  //   return this.request<{ insights: any[] }>('/ai/insights');
+  // }
 
-  async getExpenseForecasting(months: number = 3): Promise<any> {
-    return this.request(`/ai/forecast`, {
-      method: 'POST',
-      body: JSON.stringify({ months }),
-    });
-  }
+  // async getExpenseForecasting(months: number = 3): Promise<any> {
+  //   return this.request(`/ai/forecast`, {
+  //     method: 'POST',
+  //     body: JSON.stringify({ months }),
+  //   });
+  // }
 
-  async getFinancialTips(): Promise<{ tips: any[] }> {
-    return this.request<{ tips: any[] }>('/ai/tips');
-  }
+  // async getFinancialTips(): Promise<{ tips: any[] }> {
+  //   return this.request<{ tips: any[] }>('/ai/tips');
+  // }
 
-  // ==================== BUDGET ROUTES ====================
+  // // ==================== BUDGET ROUTES ====================
   
-  async createBudget(budget: {
-    category: string;
-    monthly_limit: number;
-    month: number;
-    year: number;
-  }) {
-    return this.request('/budgets', {
-      method: 'POST',
-      body: JSON.stringify(budget),
-    });
-  }
+  // async createBudget(budget: {
+  //   category: string;
+  //   monthly_limit: number;
+  //   month: number;
+  //   year: number;
+  // }) {
+  //   return this.request('/budget', {
+  //     method: 'POST',
+  //     body: JSON.stringify(budget),
+  //   });
+  // }
 
-  async getBudgets(params?: {
-    month?: number;
-    year?: number;
-  }) {
-    const queryParams = new URLSearchParams();
-    if (params?.month) queryParams.append('month', params.month.toString());
-    if (params?.year) queryParams.append('year', params.year.toString());
+  // async getBudgets(params?: {
+  //   month?: number;
+  //   year?: number;
+  // }) {
+  //   const queryParams = new URLSearchParams();
+  //   if (params?.month) queryParams.append('month', params.month.toString());
+  //   if (params?.year) queryParams.append('year', params.year.toString());
     
-    const query = queryParams.toString();
-    return this.request(`/budgets${query ? `?${query}` : ''}`);
-  }
+  //   const query = queryParams.toString();
+  //   return this.request(`/budget${query ? `?${query}` : ''}`);
+  // }
 
-  async getBudget(id: number) {
-    return this.request(`/budgets/${id}`);
-  }
+  // async getBudget(id: number) {
+  //   return this.request(`/budget/${id}`);
+  // }
 
-  async updateBudget(id: number, budget: {
-    monthly_limit?: number;
-    month?: number;
-    year?: number;
-  }) {
-    return this.request(`/budgets/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(budget),
-    });
-  }
+  // async updateBudget(id: number, budget: {
+  //   monthly_limit?: number;
+  //   month?: number;
+  //   year?: number;
+  // }) {
+  //   return this.request(`/budget/${id}`, {
+  //     method: 'PUT',
+  //     body: JSON.stringify(budget),
+  //   });
+  // }
 
-  async deleteBudget(id: number): Promise<void> {
-    return this.request<void>(`/budgets/${id}`, {
-      method: 'DELETE',
-    });
-  }
+  // async deleteBudget(id: number): Promise<void> {
+  //   return this.request<void>(`/budget/${id}`, {
+  //     method: 'DELETE',
+  //   });
+  // }
 
-  // ==================== GOALS ROUTES ====================
+  // // ==================== GOALS ROUTES ====================
   
-  async createGoal(goal: {
-    name: string;
-    description?: string;
-    target_amount: number;
-    current_amount?: number;
-    target_date: string;
-  }) {
-    return this.request('/goals', {
-      method: 'POST',
-      body: JSON.stringify(goal),
-    });
-  }
+  // async createGoal(goal: {
+  //   name: string;
+  //   description?: string;
+  //   target_amount: number;
+  //   current_amount?: number;
+  //   target_date: string;
+  // }) {
+  //   return this.request('/goal', {
+  //     method: 'POST',
+  //     body: JSON.stringify(goal),
+  //   });
+  // }
 
-  async getGoals(includeCompleted: boolean = false) {
-    return this.request(`/goals?include_completed=${includeCompleted}`);
-  }
+  // async getGoals(includeCompleted: boolean = false) {
+  //   return this.request(`/goal?include_completed=${includeCompleted}`);
+  // }
 
-  async getGoal(id: number) {
-    return this.request(`/goals/${id}`);
-  }
+  // async getGoal(id: number) {
+  //   return this.request(`/goal/${id}`);
+  // }
 
-  async updateGoal(id: number, goal: {
-    name?: string;
-    description?: string;
-    target_amount?: number;
-    current_amount?: number;
-    target_date?: string;
-    is_completed?: boolean;
-  }) {
-    return this.request(`/goals/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(goal),
-    });
-  }
+  // async updateGoal(id: number, goal: {
+  //   name?: string;
+  //   description?: string;
+  //   target_amount?: number;
+  //   current_amount?: number;
+  //   target_date?: string;
+  //   is_completed?: boolean;
+  // }) {
+  //   return this.request(`/goal/${id}`, {
+  //     method: 'PUT',
+  //     body: JSON.stringify(goal),
+  //   });
+  // }
 
-  async contributeToGoal(id: number, amount: number) {
-    return this.request(`/goals/${id}/contribute`, {
-      method: 'POST',
-      body: JSON.stringify({ amount }),
-    });
-  }
+  // async contributeToGoal(id: number, amount: number) {
+  //   return this.request(`/goal/${id}/contribute`, {
+  //     method: 'POST',
+  //     body: JSON.stringify({ amount }),
+  //   });
+  // }
 
-  async deleteGoal(id: number): Promise<void> {
-    return this.request<void>(`/goals/${id}`, {
-      method: 'DELETE',
-    });
-  }
+  // async deleteGoal(id: number): Promise<void> {
+  //   return this.request<void>(`/goal/${id}`, {
+  //     method: 'DELETE',
+  //   });
+  // }
 
   // ==================== USER PROFILE ROUTES ====================
   
   async getCurrentUser() {
-    return this.request('/users/me');
+    return this.request('/user/me');
   }
 
   async updateUserProfile(profile: {
@@ -340,7 +340,7 @@ class ApiService {
     username?: string;
     full_name?: string;
   }) {
-    return this.request('/users/me', {
+    return this.request('/user/me', {
       method: 'PUT',
       body: JSON.stringify(profile),
     });
@@ -351,23 +351,103 @@ class ApiService {
     new_password: string;
     confirm_password: string;
   }) {
-    return this.request('/users/me/password', {
+    return this.request('/user/me/password', {
       method: 'PUT',
       body: JSON.stringify(passwordData),
     });
   }
 
   async deactivateAccount(): Promise<void> {
-    return this.request<void>('/users/me', {
+    return this.request<void>('/user/me', {
       method: 'DELETE',
     });
   }
 
   async reactivateAccount() {
-    return this.request('/users/me/reactivate', {
+    return this.request('/user/me/reactivate', {
       method: 'POST',
     });
   }
+  // Add these methods to your existing apiService in frontend/src/services/api.ts
+// This extends your current implementation
+
+// Add these interfaces to frontend/src/types/api.ts first, then use them here:
+
+// In your existing ApiService class, replace the AI SERVICES section with this:
+
+// ==================== AI SERVICES ROUTES (UPDATED) ====================
+
+async chatWithAdvisor(message: string, conversationHistory: any[] = []): Promise<{ 
+  response: string; 
+  timestamp: string;
+}> {
+  return this.request('/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({ 
+      message,
+      conversation_history: conversationHistory 
+    }),
+  });
+}
+
+async getAIInsights(): Promise<{ insights: any[] }> {
+  return this.request<{ insights: any[] }>('/ai/insights');
+}
+
+// UPDATED: Enhanced forecast with Prophet support
+async getExpenseForecast(params?: {
+  months?: number;
+  category?: string;
+}): Promise<{
+  forecast: Array<{
+    month: string;
+    predicted_expenses: number;
+    lower_bound?: number;
+    upper_bound?: number;
+    confidence: number;
+  }>;
+  method: 'prophet' | 'statistical' | 'none';
+  model_info?: {
+    algorithm: string;
+    data_points: number;
+    training_period: string;
+  };
+  trend_analysis?: {
+    direction: 'increasing' | 'decreasing' | 'stable';
+    change_percentage: number;
+    message: string;
+  };
+  message?: string;
+}> {
+  const queryParams = new URLSearchParams();
+  if (params?.months) queryParams.append('months', params.months.toString());
+  if (params?.category) queryParams.append('category', params.category);
+  
+  const query = queryParams.toString();
+  return this.request(`/ai/forecast${query ? `?${query}` : ''}`, {
+    method: 'POST',
+  });
+}
+
+// NEW: Category-wise forecast
+async getCategoryForecast(months: number = 3): Promise<{
+  category_forecasts: Array<{
+    category: string;
+    current_monthly_avg: number;
+    predicted_next_month: number;
+    trend_percentage: number;
+    confidence: number;
+  }>;
+  total_predicted: number;
+  forecast_period: string;
+  message?: string;
+}> {
+  return this.request(`/ai/category-forecast?months=${months}`);
+}
+
+async getFinancialTips(): Promise<{ tips: any[] }> {
+  return this.request<{ tips: any[] }>('/ai/tips');
+}
 }
 
 export const apiService = new ApiService();
